@@ -1,17 +1,38 @@
 -- 1. Lista de profesores con su sueldo, indicando si son o no profesores jefe y los alumnos de su jefatura, si corresponde.
 
-SELECT 
+SELECT
     e.nombre AS nombre_profesor,
     e.apellido AS apellido_profesor,
     e.sueldo,
-    COALESCE(cp.esprofejefe, FALSE) AS es_profesor_jefe,
-    COALESCE(STRING_AGG(a.nombre || ' ' || a.apellido, ', '), 'No aplica') AS alumnos_jefatura
-FROM profesor p
-JOIN empleado e ON e.id = p.id_empleado
-LEFT JOIN curso_profesor cp ON cp.id_profesor = p.id AND cp.esprofejefe = TRUE
-LEFT JOIN alumno a ON a.id_curso = cp.id_curso
-GROUP BY e.id, e.nombre, e.apellido, e.sueldo, cp.esprofejefe
-ORDER BY e.apellido, e.nombre;
+    col.nombre AS colegio,
+    CASE
+        WHEN EXISTS (
+            SELECT 1 
+            FROM curso_profesor 
+            WHERE id_profesor = p.id AND esprofejefe = TRUE
+        ) THEN TRUE
+        ELSE FALSE
+    END AS es_profesor_jefe,
+    CASE
+        WHEN EXISTS (
+            SELECT 1 
+            FROM curso_profesor 
+            WHERE id_profesor = p.id AND esprofejefe = TRUE
+        ) THEN (
+            SELECT STRING_AGG(a.nombre || ' ' || a.apellido, ', ')
+            FROM alumno a
+            WHERE a.id_curso IN (
+                SELECT id_curso 
+                FROM curso_profesor 
+                WHERE id_profesor = p.id AND esprofejefe = TRUE
+            )
+        )
+        ELSE 'No aplica'
+    END AS alumnos_jefatura
+FROM empleado e
+JOIN profesor p ON e.id = p.id_empleado
+JOIN colegio col ON e.id_colegio = col.id
+ORDER BY col.nombre, e.apellido, e.nombre;
 
 
 -- 2. Lista de alumnos por curso con más inasistencias por mes en el año 2019.
