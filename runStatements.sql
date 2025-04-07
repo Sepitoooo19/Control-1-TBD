@@ -42,11 +42,14 @@ WITH inasistencias_2019 AS (
         a.nombre || ' ' || a.apellido AS nombre_alumno,
         c.id AS id_curso,
         c.nombre AS nombre_curso,
+        col.nombre AS nombre_colegio,
         asist.fecha AS fecha,
-        EXTRACT(MONTH FROM asist.fecha) AS mes
+        EXTRACT(MONTH FROM asist.fecha) AS mes,
+        EXTRACT(YEAR FROM asist.fecha) AS anio
     FROM asistencia asist
     JOIN alumno a ON asist.id_alumno = a.id
     JOIN curso c ON a.id_curso = c.id
+    JOIN colegio col ON c.id_colegio = col.id
     WHERE asist.estado = false
       AND asist.fecha BETWEEN '2019-01-01' AND '2019-12-31'
 ),
@@ -56,10 +59,12 @@ conteo_por_mes AS (
         nombre_alumno,
         id_curso,
         nombre_curso,
+        nombre_colegio,
         mes,
+        anio,
         COUNT(*) AS total_inasistencias
     FROM inasistencias_2019
-    GROUP BY id_alumno, nombre_alumno, id_curso, nombre_curso, mes
+    GROUP BY id_alumno, nombre_alumno, id_curso, nombre_curso, nombre_colegio, mes, anio
 ),
 ranking AS (
     SELECT *,
@@ -67,13 +72,15 @@ ranking AS (
     FROM conteo_por_mes
 )
 SELECT
+    nombre_colegio,
     nombre_curso,
+    anio,
     mes,
     nombre_alumno,
     total_inasistencias
 FROM ranking
 WHERE rnk = 1
-ORDER BY id_curso, mes;
+ORDER BY nombre_colegio, id_curso, mes;
 
 
 
