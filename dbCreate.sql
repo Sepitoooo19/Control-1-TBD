@@ -1,16 +1,7 @@
 
 -- CREACIÓN DE BASE DE DATOS --
-
-
-
 -- Crear base de datos --
 CREATE DATABASE colegio;
-
-
-
--- Conectarse a la base de datos creada --
-\c colegio;
-
 
 
 
